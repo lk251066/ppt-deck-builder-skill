@@ -2,12 +2,7 @@
 name: ppt-deck-builder
 description: Use when building or revising a PPT/演示文稿 in a shareable, self-contained workflow folder, especially when the job spans storyline design, page briefs, chart pages, fixed-text image prompts, provider-selectable slide image generation, page repair, and PPTX packaging without depending on repo files outside this skill folder.
 version: 0.1.0
-metadata:
-  openclaw:
-    requires:
-      bins:
-        - bash
-        - python3
+metadata: {"openclaw":{"requires":{"bins":["bash","python3"]}}}
 ---
 
 # PPT Deck Builder
