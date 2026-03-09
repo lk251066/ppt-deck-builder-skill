@@ -37,6 +37,10 @@ export PPT_IMAGE_PROVIDER="runninghub_g31"
 export RUNNINGHUB_API_KEY="your_api_key"
 ```
 
+Default model note:
+- human-readable default: RunningHub 3.1 flash
+- provider model id in this workflow: `rhart-image-n-g31-flash`
+
 For a local command adapter from the skill root:
 
 ```bash

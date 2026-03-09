@@ -89,6 +89,10 @@ Recommended failure shape:
 
 ## RunningHub Notes
 
+Default naming:
+- human-readable default: RunningHub 3.1 flash
+- workflow model id: `rhart-image-n-g31-flash`
+
 For `runninghub_g31`, supported provider options include:
 
 - `model`

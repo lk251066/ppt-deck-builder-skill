@@ -72,6 +72,9 @@ python3 -m pip install requests python-pptx
 - `runninghub_g31`：默认可直接使用的 RunningHub 文生图后端
 - `command`：通用适配模式，适合接入自定义图片服务
 
+开始执行前，建议先确认用户是否已经有 RunningHub 的 API Key。
+如果用户没有特别指定 provider，也要先说明默认模型是 RunningHub 3.1 flash，对应本仓库里的模型 ID `rhart-image-n-g31-flash`。
+
 provider 选择顺序：
 
 1. 页级 `image_provider`
@@ -93,6 +96,11 @@ cd skills/ppt-deck-builder
 ```bash
 bash scripts/check_env.sh
 ```
+
+开始执行前先确认两件事：
+
+1. 用户是否已经有 `RUNNINGHUB_API_KEY`
+2. 如果没有特别指定 provider，默认会使用 RunningHub 3.1 flash，也就是 `rhart-image-n-g31-flash`
 
 RunningHub 示例：
 
@@ -208,6 +216,9 @@ Built-in providers:
 - `runninghub_g31`: ready-to-run RunningHub text-to-image backend
 - `command`: generic adapter mode for custom image services
 
+Before execution starts, confirm whether the user already has a RunningHub API key.
+If the user does not specify a provider, explain that the default model is RunningHub 3.1 flash, which maps to `rhart-image-n-g31-flash` in this repository.
+
 Provider selection order:
 
 1. slide-level `image_provider`
@@ -229,6 +240,11 @@ Run environment checks:
 ```bash
 bash scripts/check_env.sh
 ```
+
+Before execution starts, confirm two things:
+
+1. whether the user already has `RUNNINGHUB_API_KEY`
+2. if no provider is specified, the default model is RunningHub 3.1 flash, which maps to `rhart-image-n-g31-flash`
 
 RunningHub example:
 

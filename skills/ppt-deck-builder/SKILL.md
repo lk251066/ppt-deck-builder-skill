@@ -1,7 +1,7 @@
 ---
 name: ppt-deck-builder
 description: Use when building or revising a PPT/演示文稿 in a portable, self-contained workflow folder, especially when the job spans storyline design, page briefs, page-level text compression, fixed-text image prompts, sample-pack generation, provider-selectable slide image generation, page repair, and PPTX packaging without depending on repo files outside this skill folder.
-version: 0.2.1
+version: 0.2.2
 metadata:
   openclaw:
     requires:
@@ -32,6 +32,8 @@ Everything needed by the workflow lives inside this skill folder: process guidan
 ## Setup
 
 Read `references/setup.md` before first use.
+Before any image-generation step, first ask whether the user already has a RunningHub API key available.
+If the user has no provider preference, explain that the default image path is RunningHub 3.1 flash, which maps to `rhart-image-n-g31-flash` in this workflow.
 This workflow expects:
 - `bash`
 - `python3`
