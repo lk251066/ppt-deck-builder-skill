@@ -15,6 +15,8 @@ Story design, page briefs, prompt rules, QA, and PPTX packaging should not depen
 - Keep `runninghub_g31` as the ready-to-run default.
 - Use `command` when OpenClaw or another agent should own the image backend.
 - Put backend-specific changes in one adapter command instead of editing the story and layout workflow.
+- Start new providers with a small reference pack before the full batch.
+- If the workflow needs reference-image style anchoring, image editing, or multi-image conditioning, prefer `command` so the adapter can evolve without changing the deck workflow.
 
 ## Plan File Pattern
 
@@ -45,6 +47,15 @@ The request file contains fields such as:
 - `resolution`
 - `aspectRatio`
 - `provider_options`
+
+Because the full `slide` object is passed through, a command adapter may also read custom fields such as:
+
+- `page_identity`
+- `reading_path`
+- `negative_rules`
+- `style_anchor_plan`
+- `reference_images`
+- `style_anchor_image`
 
 The command must print one JSON object to stdout.
 
@@ -87,7 +98,20 @@ For `runninghub_g31`, supported provider options include:
 - `api_key_env`
 - `request_overrides`
 
-This keeps the default adapter usable even if the exact RunningHub model changes later.
+Default behavior:
+
+- model: `rhart-image-n-g31-flash`
+- submit path: `/{model}/text-to-image`
+- query path: `/query`
+
+This built-in adapter is text-to-image only by default.
+If the workflow needs reference images or image-edit style continuation, switch to `command` and own that logic in the adapter command.
+
+The current generator treats common timeout and busy responses as retryable.
+If the provider still fails:
+- rerun a smaller batch
+- lower sample resolution first
+- keep `max-workers=1` until the sample is stable
 
 ## OpenClaw Guidance
 
@@ -96,6 +120,7 @@ When used from OpenClaw:
 - prefer `{baseDir}` in skill instructions
 - let OpenClaw change only the adapter command or provider options
 - avoid rewriting the main workflow unless the output contract changes
+- if OpenClaw wants stronger cross-page style consistency, it should attach `reference_images` or `style_anchor_image` through the `command` adapter instead of hardcoding one image provider into the skill
 
 ## Useful Local Files
 

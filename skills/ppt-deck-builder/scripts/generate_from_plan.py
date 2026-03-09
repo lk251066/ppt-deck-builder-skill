@@ -89,32 +89,46 @@ def pick_prompt(slide: dict[str, Any]) -> str:
 
 def build_fallback_prompt(prompt: str) -> str:
     """
-    Simplify prompt to reduce model load while keeping style + text constraints.
+    Simplify prompt to reduce model load while keeping page identity, layout,
+    and text constraints.
     """
     lines = [ln.strip() for ln in prompt.splitlines() if ln.strip()]
-    keep = []
+    keep: list[str] = []
+    section_starts = (
+        "你是一位",
+        "Generate a 16:9",
+        "【风格】",
+        "【版式】",
+        "【文字要求】",
+        "【页面文字",
+        "Page type:",
+        "Reading path:",
+        "Composition:",
+        "Text rule:",
+        "Style:",
+        "Negative rules:",
+    )
     for ln in lines:
-        if ln.startswith("你是一位") or ln.startswith("【风格】") or ln.startswith("【版式】"):
+        if ln.startswith(section_starts):
             keep.append(ln)
-        elif ln.startswith("【文字要求】"):
-            keep.append(ln)
-        elif ln.startswith("【页面文字"):
-            keep.append(ln)
-        elif keep and keep[-1].startswith("【页面文字") and not ln.startswith("【"):
+        elif keep and (keep[-1].startswith("【页面文字") or keep[-1].startswith("Text rule:")) and not ln.startswith("【"):
             keep.append(ln)
     if len(keep) < 6:
         return prompt + "\n画面更简洁，减少复杂背景细节，确保文字清晰。"
     return "\n".join(keep) + "\n画面更简洁，减少复杂背景细节，确保文字清晰。"
 
 
-def is_timeout_failure(final_resp: dict[str, Any] | None) -> bool:
+def is_retryable_runninghub_failure(final_resp: dict[str, Any] | None) -> bool:
     if not final_resp:
         return False
     code = str(final_resp.get("errorCode") or "")
     msg = str(final_resp.get("errorMessage") or "")
-    if code in {"1006", "1504"}:
+    lowered = msg.lower()
+    if code in {"1006", "1011", "1504"}:
         return True
-    if "超时" in msg or "timed out" in msg.lower():
+    if "超时" in msg or "timed out" in lowered:
+        return True
+    if "system is currently busy" in lowered or "当前系统负载较高" in msg or "please retry later" in lowered:
         return True
     return False
 
@@ -504,7 +518,7 @@ def generate_one_slide(
         attempts.append(slim_attempt_record(result))
 
         if result.get("status") != "SUCCESS":
-            if provider == "runninghub_g31" and is_timeout_failure(result.get("final_response")):
+            if provider == "runninghub_g31" and is_retryable_runninghub_failure(result.get("final_response")):
                 continue
             if provider == "command" and result.get("retryable"):
                 continue

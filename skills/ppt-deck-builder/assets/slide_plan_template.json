@@ -11,20 +11,124 @@
     {
       "slide_number": 1,
       "page_type": "cover",
-      "content": "Cover page",
-      "prompt_override": "Replace with your full page prompt and exact approved text lines."
+      "page_goal": "Open the deck with a clear business tone.",
+      "page_identity": "Generate a 16:9 Chinese client-facing PPT cover page, not a poster, not a background-only image.",
+      "content": "AI adoption roadmap",
+      "native_structure_lock": "Keep this page as a cover.",
+      "reading_path": "top to bottom",
+      "style_anchor_plan": "candidate_anchor",
+      "text_density": "low",
+      "readability_style": "dark_business",
+      "note": "Keep the title readable and stable.",
+      "qa_focus": [
+        "title remains the strongest element",
+        "no extra labels appear",
+        "blue dark cards stay consistent",
+        "page reads like a real client-facing slide"
+      ],
+      "repair_hints": [
+        "reduce background detail if the title softens",
+        "do not replace AI with other English words",
+        "strengthen cover-page identity before adding effects"
+      ],
+      "approved_text_lines": [
+        "AI adoption roadmap",
+        "Board briefing",
+        "Draft discussion"
+      ],
+      "text_regions": [
+        "title zone: AI adoption roadmap",
+        "subtitle zone: Board briefing, Draft discussion"
+      ],
+      "negative_rules": [
+        "not a poster",
+        "no giant hero figure",
+        "no extra English labels",
+        "no watermark or QR code"
+      ],
+      "prompt_override": "Generate a 16:9 Chinese client-facing PPT cover page, not a poster, not a background-only image. Page type: cover. Reading path: top to bottom. Composition: large title zone with stable subtitle zone. Style: business, presentation-ready, deep navy and cobalt blue, subtle futuristic atmosphere, dark glass panels, high contrast. Text rule: only show the following text, each line once only, do not add extra English labels, numbers, or small UI copy. Negative rules: no poster look, no giant hero figure, no watermark, no blurry text. 【页面文字】\nAI adoption roadmap\nBoard briefing\nDraft discussion"
     },
     {
       "slide_number": 2,
-      "page_type": "content",
-      "content": "Content page",
-      "prompt_override": "Replace with your full page prompt and exact approved text lines."
+      "page_type": "path",
+      "page_goal": "Show the implementation route in one obvious reading path.",
+      "page_identity": "Generate a 16:9 Chinese client-facing PPT path page, not a poster, not a dashboard screenshot.",
+      "content": "Implementation path",
+      "native_structure_lock": "Keep this page as a path page even if more explanation is added.",
+      "reading_path": "left to right",
+      "style_anchor_plan": "follow_anchor_if_available",
+      "text_density": "medium",
+      "readability_style": "auto",
+      "note": "Use a single horizontal path, not a dense process map.",
+      "qa_focus": [
+        "the route reads from left to right",
+        "stage blocks keep one visual style",
+        "text belongs to clear regions"
+      ],
+      "repair_hints": [
+        "simplify the route if labels crowd",
+        "forbid fake chart labels",
+        "make the reading path more explicit"
+      ],
+      "approved_text_lines": [
+        "Implementation path",
+        "Assess",
+        "Design",
+        "Pilot",
+        "Roll out"
+      ],
+      "text_regions": [
+        "title zone: Implementation path",
+        "path nodes: Assess, Design, Pilot, Roll out"
+      ],
+      "negative_rules": [
+        "not a poster",
+        "no fake dashboard clutter",
+        "no repeated footer summary",
+        "no extra digits or percent signs"
+      ],
+      "prompt_override": "Generate a 16:9 Chinese client-facing PPT path page, not a poster, not a dashboard screenshot. Page type: path page. Reading path: left to right. Composition: top title zone, one center horizontal route with four stable stage modules, one bottom summary strip if needed. Style: business, proposal-ready, deep navy, cobalt blue, ice blue accents, dark glass cards. Text rule: only show the following text, each line once only, do not add extra labels, digits, or tiny chart copy. Negative rules: no poster look, no fake dashboard clutter, no repeated summary strip, no blurry text. 【页面文字】\nImplementation path\nAssess\nDesign\nPilot\nRoll out"
     },
     {
       "slide_number": 3,
-      "page_type": "summary",
-      "content": "Summary page",
-      "prompt_override": "Replace with your full page prompt and exact approved text lines."
+      "page_type": "diagnostic",
+      "page_goal": "Show how the current-state diagnosis is structured.",
+      "page_identity": "Generate a 16:9 Chinese client-facing PPT diagnostic page, not a poster, not a generic infographic.",
+      "content": "Current-state diagnosis",
+      "native_structure_lock": "Keep this page as a 2x2 diagnostic layout.",
+      "reading_path": "top to bottom, then left to right inside the grid",
+      "style_anchor_plan": "follow_anchor_if_available",
+      "text_density": "medium",
+      "readability_style": "fallback_light_readability",
+      "note": "Use a 2x2 diagnostic layout.",
+      "qa_focus": [
+        "reading order is obvious",
+        "card titles stay short and sharp",
+        "2x2 structure stays intact"
+      ],
+      "repair_hints": [
+        "shorten card titles before shrinking body text",
+        "split the page if the 2x2 grid becomes crowded",
+        "restore the 2x2 page identity if the layout drifts"
+      ],
+      "approved_text_lines": [
+        "Current-state diagnosis",
+        "Process",
+        "Data",
+        "Issues",
+        "Outputs"
+      ],
+      "text_regions": [
+        "title zone: Current-state diagnosis",
+        "grid cells: Process, Data, Issues, Outputs"
+      ],
+      "negative_rules": [
+        "not a poster",
+        "no extra English micro-copy",
+        "no repeated words",
+        "no fake chart labels"
+      ],
+      "prompt_override": "Generate a 16:9 Chinese client-facing PPT diagnostic page, not a poster, not a generic infographic. Page type: 2x2 diagnostic grid. Reading path: title first, then left to right across the grid. Composition: stable title zone, balanced 2x2 cards, controlled bottom space. Style: business, consulting-style, deep navy and cobalt blue, restrained futuristic atmosphere, dark glass cards. Text rule: only show the following text, each line once only, do not add extra English, repeated words, or fake chart labels. Negative rules: no poster look, no clutter, no blurry text. 【页面文字】\nCurrent-state diagnosis\nProcess\nData\nIssues\nOutputs"
     }
   ]
 }
