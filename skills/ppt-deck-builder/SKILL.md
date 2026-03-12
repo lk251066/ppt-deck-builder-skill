@@ -1,7 +1,7 @@
 ---
 name: ppt-deck-builder
-description: Use when building or revising a PPT/演示文稿 in a portable, self-contained workflow folder, especially when the job spans storyline design, page briefs, page-level text compression, fixed-text image prompts, sample-pack generation, provider-selectable slide image generation, page repair, and PPTX packaging without depending on repo files outside this skill folder.
-version: 0.2.2
+description: Use when building or revising a PPT/演示文稿 in a portable, self-contained workflow folder, especially when the job spans storyline design, page briefs, page-level text compression, fixed-text image prompts, style-selectable slide image generation, sample-pack generation, page repair, and PPTX packaging without depending on repo files outside this skill folder.
+version: 0.3.0
 metadata:
   openclaw:
     requires:
@@ -22,6 +22,7 @@ Everything needed by the workflow lives inside this skill folder: process guidan
 - The user wants to generate slide images with fixed text and package them into a `.pptx`.
 - The user wants one skill folder instead of multiple linked skills.
 - The user wants the image provider to stay replaceable so OpenClaw or another agent can switch providers later.
+- The user wants to choose a visual direction such as dark blue business, light consulting, or whiteboard hand-drawn before generation.
 
 ## Do Not Use When
 
@@ -32,8 +33,6 @@ Everything needed by the workflow lives inside this skill folder: process guidan
 ## Setup
 
 Read `references/setup.md` before first use.
-Before any image-generation step, first ask whether the user already has a RunningHub API key available.
-If the user has no provider preference, explain that the default image path is RunningHub 3.1 flash, which maps to `rhart-image-n-g31-flash` in this workflow.
 This workflow expects:
 - `bash`
 - `python3`
@@ -42,20 +41,26 @@ This workflow expects:
 - an image provider selected by CLI, plan file, or environment variable
 - provider-specific environment variables only for the chosen provider
 
+Before first generation:
+- Ask whether a RunningHub API key is available.
+- Default model is `rhart-image-n-g31-flash`.
+- If no provider is specified, stay on `runninghub_g31`.
+
 OpenClaw-safe paths use `{baseDir}`.
 Plain shell usage still works from the root of this skill folder with `bash scripts/...`.
 
 ## Workflow Decision Tree
 
 1. If the input is messy or vague, start with story design.
-2. If the page sequence exists, define the page type, page identity sentence, and reading path before prompt writing.
-3. Compress page titles and visible text before adding style language.
-4. If the deck is image-based, generate a small reference pack before the full batch.
-5. If one page sets the desired visual standard, treat it as a style anchor for later pages when the provider supports reference images.
-6. If text looks unstable, simplify the page before adding more visual detail.
-7. After full-batch generation, build review contact sheets and inspect the whole deck.
-8. If any page has text, layout, or tone issues, rerun only that page and review again.
-9. Package only after the full image set is reviewed and approved.
+2. Choose one deck-level style preset or define a custom style direction before prompt writing.
+3. If the page sequence exists, define the page type, page identity sentence, and reading path before prompt writing.
+4. Compress page titles and visible text before adding style language.
+5. If the deck is image-based, generate a small reference pack before the full batch.
+6. If one page sets the desired visual standard, treat it as a style anchor for later pages when the provider supports reference images.
+7. If text looks unstable, simplify the page before adding more visual detail.
+8. After full-batch generation, build review contact sheets and inspect the whole deck.
+9. If any page has text, layout, tone, or style-drift issues, rerun only that page and review again.
+10. Package only after the full image set is reviewed and approved.
 
 ## Core Workflow
 
@@ -63,18 +68,21 @@ Plain shell usage still works from the root of this skill folder with `bash scri
 
 - Identify audience, objective, and expected action.
 - Choose a storyline pattern.
+- Choose a deck-level style preset early. Default to a business presentation style unless the user explicitly wants a stronger style such as whiteboard hand-drawn.
 - Reduce the deck to one message per page.
 - Draft a page list with title, role, and key takeaway.
 
 Read when needed:
 - `references/story-patterns.md`
 - `references/audience-and-goals.md`
+- `references/style-presets.md`
 - `references/workflow-playbook.md`
 
 ### 2. Build the page map
 
 - Assign a page type to each page.
 - Write one page identity sentence for each page such as `This is a Chinese client-facing PPT path page, not a poster.`
+- Lock the deck style at the same time. Put style exceptions on the page only when a page genuinely needs to break the deck standard.
 - Keep a clear reading order.
 - Choose a visual job for the page: decision, diagnosis, path, matrix, rollout, results, or conclusion.
 - Avoid dense structures before the narrative is stable.
@@ -83,6 +91,7 @@ Read when needed:
 Read when needed:
 - `references/page-types.md`
 - `references/layout-patterns.md`
+- `references/style-presets.md`
 - `references/workflow-playbook.md`
 
 ### 3. Compress page language
@@ -96,6 +105,7 @@ Read when needed:
 - Do not raise information density by repeating the same idea in both the diagram area and the footer area.
 - Treat the page as an integrated text-and-background PPT page, not as a background image that will be fixed later.
 - For Chinese image pages, prefer fewer but larger text groups over many scattered micro-labels.
+- For whiteboard-style pages, reduce visible text even earlier and prefer 3-6 large handwritten groups instead of many tiny labels.
 
 Use these local resources:
 - `assets/page_brief_template.md`
@@ -106,6 +116,7 @@ Use these local resources:
 
 - Work one page at a time.
 - Start each prompt with page identity and page type before style words.
+- Carry the chosen `style_preset` into each page plan. Only use page-level style overrides when the deck needs a controlled exception.
 - Fix the exact text lines allowed on the page.
 - Map each text line to one region.
 - State the reading path directly.
@@ -115,10 +126,12 @@ Use these local resources:
 - Keep the deck's primary business visual standard first.
 - Use a light consulting-style layout with dark text only as a fallback when dense text remains blurry or repetitive after prompt repair.
 - When a model supports richer text rendering, still avoid long paragraph blocks until a reference pack proves the layout is stable.
+- If the chosen style is `whiteboard_handdrawn`, explicitly lock the whiteboard borders, zero room background, handwritten Chinese, hand-drawn illustration behavior, and mascot policy if any.
 
 Use these local resources:
 - `references/prompt-rules.md`
 - `references/provider-adapters.md`
+- `references/style-presets.md`
 - `assets/slide_plan_template.json`
 - `assets/page_brief_template.md`
 
@@ -130,6 +143,7 @@ Use a small sample to validate:
 - title wrapping
 - reading order
 - overall business tone
+- style fidelity to the selected preset
 - dense-page readability
 - no repeated footer or summary text
 - whether the page reads like a client-facing slide instead of a poster or training handout
@@ -162,6 +176,7 @@ The image provider can be selected in this order:
 Notes:
 - The built-in `runninghub_g31` adapter targets the RunningHub `rhart-image-n-g31-flash/text-to-image` path by default.
 - If the backend should use reference images, image editing, or multi-image style anchoring, switch to `command` and let OpenClaw own that adapter logic.
+- If the user wants strong cross-page style continuation such as a whiteboard course deck, prefer a sample-first workflow and treat one approved page as the style anchor for later reruns.
 
 Built-in providers:
 - `runninghub_g31`
@@ -236,6 +251,7 @@ Read when needed:
 - If the backend should change, switch to `command` instead of rewriting the deck workflow.
 - If a page keeps failing, repair the story or prompt first, not the packaging step.
 - If a page looks stylish but not presentation-ready, strengthen page identity, reading path, and text-region mapping before changing colors or effects.
+- If a whiteboard-style page starts adding the wrong mascot, wrong title, or extra handwritten notes, tighten the exact text list and explicitly forbid replacement or summary text before rerunning that page.
 
 ## Local Tools In This Folder
 

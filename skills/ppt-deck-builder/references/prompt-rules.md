@@ -27,6 +27,14 @@ Use this order unless a provider needs a stricter format:
 5. Deck style and color direction
 6. Negative rules
 
+## Style Preset First
+
+- Choose one deck-level style preset before writing page prompts.
+- Keep the preset name stable across the whole deck unless one page truly needs an exception.
+- Good default presets are `dark_blue_business`, `light_consulting`, and `whiteboard_handdrawn`.
+- If the user wants a custom style, write one short style brief first, then apply it to all page prompts.
+- Read `references/style-presets.md` when the user asks for a named style or strong visual direction.
+
 ## Before You Write Prompts
 
 - Shorten the title first.
@@ -81,6 +89,18 @@ Use this order unless a provider needs a stricter format:
 - Ask for `light sci-fi` or `subtle futuristic atmosphere`, not cyberpunk overload.
 - Design quality should come from order, focus, spacing, and hierarchy rather than from more glowing effects.
 
+## Whiteboard Hand-Drawn Rules
+
+- Use this preset only when the user explicitly wants whiteboard, founder-board, board sketch, hand-drawn training, or similar language.
+- State that the whiteboard fills the entire 16:9 frame and all four borders remain visible.
+- Forbid room background, desk, projector screen, office wall, and classroom environment.
+- Ask for elegant Chinese hard-pen handwriting, not printed font and not thick marker block text.
+- Ask for hand-drawn cartoon illustration with black outline and marker color fill.
+- If the page includes a mascot, state the mascot type explicitly and keep it stable across all pages.
+- Prefer 3-6 large handwritten text groups, not many tiny labels.
+- Forbid extra handwritten notes, replacement titles, or freestyle annotations unless they are part of the approved text.
+- If the model keeps inventing extra notes, explicitly say `the page may only contain the approved text lines`.
+
 ## Poster Avoidance Rules
 
 - Say `not a poster` when the page keeps drifting into hero-shot compositions.
@@ -103,6 +123,7 @@ Use this order unless a provider needs a stricter format:
 - Use a fixed block such as `Only show the following text. Each line appears once only.`
 - Forbid extra English, extra numbers, extra percent signs, watermarks, QR codes, and logos unless required.
 - For dense business pages, explicitly mark light-background readability mode as a fallback only, not as the default style standard.
+- If the page title must stay exact, explicitly say it cannot be replaced, shortened, or rewritten.
 
 ## Composition Guidance
 
@@ -132,6 +153,8 @@ Use this order unless a provider needs a stricter format:
 - Dense text still blurry -> keep the original brand direction if possible, but as a fallback you may switch to a light background, dark text, fewer glow effects, and fewer visible regions.
 - Page became generic after adding text -> restore the original page structure and only add one explanation area.
 - Page looks pretty but not like a slide -> strengthen page identity, page type, and reading path before changing color language.
+- Whiteboard page added extra doodles or wrong mascot -> lock approved text harder, reduce optional decoration, and restate mascot type explicitly.
+- Whiteboard page replaced the main title -> restate the exact title and explicitly forbid replacement, summary, or alternate headings.
 
 ## Provider Recovery
 
@@ -150,4 +173,16 @@ Composition: [title zone + center process band + bottom summary strip].
 Text rule: only show the following text, each line once only, do not add extra English, numbers, labels, or tiny UI copy.
 Style: business, presentation-ready, deep navy and cobalt blue, subtle futuristic atmosphere, dark glass cards, clear hierarchy.
 Negative rules: no poster look, no giant hero figure, no fake dashboard clutter, no repeated text, no blurry text.
+```
+
+## Whiteboard Prompt Skeleton
+
+```text
+Generate a 16:9 Chinese whiteboard-style PPT page, not a poster, not a classroom photo, not a background-only image.
+Page type: [comparison / matrix / path / chapter page].
+Reading path: [top to bottom / left to right].
+Composition: [top title zone + center structured modules + bottom summary area].
+Text rule: only show the approved text lines, each line once only, do not replace the title, do not add extra handwritten notes, labels, or room elements.
+Style: full-frame whiteboard, all four metallic borders visible, elegant Chinese hard-pen handwriting, hand-drawn colored marker illustrations, red and black annotation marks, stable mascot policy if required.
+Negative rules: no office background, no projector screen, no printed font, no extra doodles, no wrong mascot, no repeated text, no blurry text.
 ```

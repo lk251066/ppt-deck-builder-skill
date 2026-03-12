@@ -7,19 +7,35 @@ Keep the skill portable and provider-agnostic while making the deck workflow sta
 ## Default Sequence
 
 1. Define audience, objective, and expected action.
-2. Build the page sequence.
-3. Lock page type, page identity sentence, and reading path for each page.
-4. Shorten page titles and visible text.
-5. Pick one clear composition per page.
-6. Create prompt-ready plan entries.
-7. Generate a small reference pack.
-8. Approve one style anchor page if needed.
-9. Run the full batch.
-10. Build deck-level review contact sheets.
-11. Review every generated page.
-12. Rerun only the bad pages.
-13. Review the repaired pages again.
-14. Package the approved image set.
+2. Choose one deck-level style preset.
+3. Build the page sequence.
+4. Lock page type, page identity sentence, and reading path for each page.
+5. Shorten page titles and visible text.
+6. Pick one clear composition per page.
+7. Create prompt-ready plan entries.
+8. Generate a small reference pack.
+9. Approve one style anchor page if needed.
+10. Run the full batch.
+11. Build deck-level review contact sheets.
+12. Review every generated page.
+13. Rerun only the bad pages.
+14. Review the repaired pages again.
+15. Package the approved image set.
+
+## Style Preset Rules
+
+- Use one deck-level `style_preset` unless there is a clear reason to break the visual standard.
+- Treat style choice as an early planning decision, not as decoration added at the end.
+- The default preset should remain business-safe unless the user explicitly asks for a stronger style.
+- If the deck needs a stronger identity, prefer a named preset such as `whiteboard_handdrawn` over vague style words.
+- Read `references/style-presets.md` when the user wants a specific visual direction.
+
+Recommended presets:
+
+- `dark_blue_business`
+- `light_consulting`
+- `whiteboard_handdrawn`
+- `custom`
 
 ## Page Language Rules
 
@@ -75,6 +91,7 @@ Approve the reference pack only when:
 - the page reads like a real client-facing slide
 - the deck tone feels consistent
 - at least one page can act as a style anchor
+- the selected style preset is actually visible on the page and not washed out by a generic template
 
 ## Style Anchor Rules
 
@@ -82,6 +99,7 @@ Approve the reference pack only when:
 - If the provider supports reference images, pass the approved style anchor into later page generation.
 - If the provider does not support reference images, translate the approved page into text rules for card material, lighting, line style, palette, and spacing.
 - Keep page-specific structure intact even when reusing the same visual standard.
+- For whiteboard decks, treat the first approved page as the strongest style anchor and keep border, handwriting, illustration, and mascot behavior consistent on later pages.
 
 ## Full-Batch Review Rules
 
@@ -114,12 +132,15 @@ If text quality is poor:
 - remove repeated footer summaries
 - keep one sentence in one region only
 - restore the original page structure if the prompt drifted into a generic template
+- if the chosen preset is `whiteboard_handdrawn`, reduce module count before reducing handwriting size
+- if the model rewrites titles in whiteboard mode, explicitly lock the page title and forbid replacement text before rerunning
 
 If style quality is poor:
 - reduce poster-like hero compositions
 - reduce dramatic glow, perspective, and cinematic elements
 - strengthen business words such as `client-facing`, `proposal`, `consulting-style`, and `presentation-ready`
 - require stable card zones and calmer background behavior
+- if the deck should be whiteboard-style, explicitly require full 16:9 whiteboard borders, zero room background, handwritten Chinese, and hand-drawn color marker illustration behavior
 
 If review finds specific page defects:
 - rerun only the failed slide with `rerun_single_page.sh`

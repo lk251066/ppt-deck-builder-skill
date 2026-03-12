@@ -30,16 +30,15 @@ Built-in providers:
 
 ## Environment
 
+Before first real run, confirm whether a RunningHub API key is available.
+Default image model for this skill is `rhart-image-n-g31-flash`.
+
 For RunningHub:
 
 ```bash
 export PPT_IMAGE_PROVIDER="runninghub_g31"
 export RUNNINGHUB_API_KEY="your_api_key"
 ```
-
-Default model note:
-- human-readable default: RunningHub 3.1 flash
-- provider model id in this workflow: `rhart-image-n-g31-flash`
 
 For a local command adapter from the skill root:
 
@@ -74,3 +73,21 @@ bash scripts/run_reference_pack.sh --help || true
 5. Use `run_full_deck.sh` if you need an end-to-end command that guarantees image generation runs before packaging.
 
 If the provider is busy, lower sample resolution first and keep `max-workers=1`.
+
+## Style Selection First
+
+Before building prompts, choose one deck-level style direction:
+
+- `dark_blue_business`: default enterprise proposal style
+- `light_consulting`: light background, dark text, calmer readability-first style
+- `whiteboard_handdrawn`: full-frame whiteboard, hard-pen handwriting, hand-drawn colored illustrations
+- `custom`: only when the user gives a strong visual reference or specific art direction
+
+Read `references/style-presets.md` before prompt writing when the user names a style or asks for a non-default visual direction.
+
+For `whiteboard_handdrawn`:
+
+- start with `2k`
+- keep `max-workers=1`
+- validate one cover-like page and one dense page first
+- do not scale to the full batch until handwritten text behavior is acceptable

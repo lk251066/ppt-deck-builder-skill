@@ -1,6 +1,9 @@
 {
   "title": "Sample PPT Deck",
   "total_slides": 3,
+  "style_preset": "dark_blue_business",
+  "style_goal": "Client-facing deck with one stable visual direction.",
+  "style_anchor_strategy": "sample_first_then_full_batch",
   "image_provider": "runninghub_g31",
   "provider_options": {
     "model": "rhart-image-n-g31-flash"
@@ -11,12 +14,14 @@
     {
       "slide_number": 1,
       "page_type": "cover",
+      "style_preset": "dark_blue_business",
       "page_goal": "Open the deck with a clear business tone.",
       "page_identity": "Generate a 16:9 Chinese client-facing PPT cover page, not a poster, not a background-only image.",
       "content": "AI adoption roadmap",
       "native_structure_lock": "Keep this page as a cover.",
       "reading_path": "top to bottom",
       "style_anchor_plan": "candidate_anchor",
+      "style_notes": "Keep this preset stable unless the user explicitly chooses another style.",
       "text_density": "low",
       "readability_style": "dark_business",
       "note": "Keep the title readable and stable.",
@@ -40,6 +45,13 @@
         "title zone: AI adoption roadmap",
         "subtitle zone: Board briefing, Draft discussion"
       ],
+      "must_keep_elements": [
+        "clear top title hierarchy"
+      ],
+      "forbidden_elements": [
+        "extra labels outside approved text",
+        "style drift into poster composition"
+      ],
       "negative_rules": [
         "not a poster",
         "no giant hero figure",
@@ -51,12 +63,14 @@
     {
       "slide_number": 2,
       "page_type": "path",
+      "style_preset": "dark_blue_business",
       "page_goal": "Show the implementation route in one obvious reading path.",
       "page_identity": "Generate a 16:9 Chinese client-facing PPT path page, not a poster, not a dashboard screenshot.",
       "content": "Implementation path",
       "native_structure_lock": "Keep this page as a path page even if more explanation is added.",
       "reading_path": "left to right",
       "style_anchor_plan": "follow_anchor_if_available",
+      "style_notes": "Use the same deck preset unless the user approves a page-level exception.",
       "text_density": "medium",
       "readability_style": "auto",
       "note": "Use a single horizontal path, not a dense process map.",
@@ -81,6 +95,13 @@
         "title zone: Implementation path",
         "path nodes: Assess, Design, Pilot, Roll out"
       ],
+      "must_keep_elements": [
+        "single left-to-right route"
+      ],
+      "forbidden_elements": [
+        "fake dashboard clutter",
+        "extra summary strip"
+      ],
       "negative_rules": [
         "not a poster",
         "no fake dashboard clutter",
@@ -92,12 +113,14 @@
     {
       "slide_number": 3,
       "page_type": "diagnostic",
+      "style_preset": "light_consulting",
       "page_goal": "Show how the current-state diagnosis is structured.",
       "page_identity": "Generate a 16:9 Chinese client-facing PPT diagnostic page, not a poster, not a generic infographic.",
       "content": "Current-state diagnosis",
       "native_structure_lock": "Keep this page as a 2x2 diagnostic layout.",
       "reading_path": "top to bottom, then left to right inside the grid",
       "style_anchor_plan": "follow_anchor_if_available",
+      "style_notes": "This page shows how a page-level style override can be recorded when readability needs a lighter preset.",
       "text_density": "medium",
       "readability_style": "fallback_light_readability",
       "note": "Use a 2x2 diagnostic layout.",
@@ -121,6 +144,13 @@
       "text_regions": [
         "title zone: Current-state diagnosis",
         "grid cells: Process, Data, Issues, Outputs"
+      ],
+      "must_keep_elements": [
+        "2x2 diagnostic grid"
+      ],
+      "forbidden_elements": [
+        "generic infographic drift",
+        "extra English micro-copy"
       ],
       "negative_rules": [
         "not a poster",

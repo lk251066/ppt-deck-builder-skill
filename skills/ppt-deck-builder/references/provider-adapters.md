@@ -89,10 +89,6 @@ Recommended failure shape:
 
 ## RunningHub Notes
 
-Default naming:
-- human-readable default: RunningHub 3.1 flash
-- workflow model id: `rhart-image-n-g31-flash`
-
 For `runninghub_g31`, supported provider options include:
 
 - `model`
@@ -110,6 +106,7 @@ Default behavior:
 
 This built-in adapter is text-to-image only by default.
 If the workflow needs reference images or image-edit style continuation, switch to `command` and own that logic in the adapter command.
+This matters when one approved sample page should steer later pages, for example in a whiteboard hand-drawn deck or any style that depends on one stable mascot and line style.
 
 The current generator treats common timeout and busy responses as retryable.
 If the provider still fails:
@@ -125,6 +122,7 @@ When used from OpenClaw:
 - let OpenClaw change only the adapter command or provider options
 - avoid rewriting the main workflow unless the output contract changes
 - if OpenClaw wants stronger cross-page style consistency, it should attach `reference_images` or `style_anchor_image` through the `command` adapter instead of hardcoding one image provider into the skill
+- if OpenClaw wants image-to-image continuation or whiteboard-style follow-on pages from one approved sample, use `command` and pass that approved sample as a reference image rather than weakening the deck plan itself
 
 ## Useful Local Files
 

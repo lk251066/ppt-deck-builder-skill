@@ -18,6 +18,19 @@
 
 它更适合“成品交付型 PPT”流程，也就是每页先生成成品图，再统一打包进 PowerPoint。
 
+### 现在支持风格预设选择
+
+这套 skill 现在支持在出图前先锁定整套 deck 的视觉方向。
+
+推荐预设：
+
+- `dark_blue_business`：深蓝商务汇报风
+- `light_consulting`：浅底高可读咨询风
+- `whiteboard_handdrawn`：白板满版 + 硬笔手写 + 手绘彩色插图风格
+- `custom`：自定义风格
+
+其中 `whiteboard_handdrawn` 已经作为正式可选风格加入 skill，适合课程化、讲解型、创始人板书感、机制拆解型 PPT。
+
 ### 仓库结构
 
 ```text
@@ -121,19 +134,29 @@ bash scripts/run_image_batch.sh plan.json output_dir
 ### 标准流程
 
 1. 明确 audience、目标和页序
-2. 为每页编写 page brief
-3. 将 brief 整理为 slide plan JSON
-4. 先做小样测试
-5. 再跑全量出图
-6. 对问题页单独返修
-7. 做整套 QA
-8. 打包为 `.pptx`
+2. 先确定整套的风格预设
+3. 为每页编写 page brief
+4. 将 brief 整理为 slide plan JSON
+5. 先做小样测试
+6. 再跑全量出图
+7. 对问题页单独返修
+8. 做整套 QA
+9. 打包为 `.pptx`
+
+如果用户明确要求强风格页面，建议把流程改成：
+
+1. 先确认风格预设
+2. 先跑 sample pack
+3. 选定一页作为风格锚点
+4. 再跑全量
+5. 最后只修坏页
 
 ### 关键文件
 
 - `skills/ppt-deck-builder/SKILL.md`：主技能说明
 - `skills/ppt-deck-builder/assets/page_brief_template.md`：页级 brief 模板
 - `skills/ppt-deck-builder/assets/slide_plan_template.json`：出图计划模板
+- `skills/ppt-deck-builder/references/style-presets.md`：风格预设说明
 - `skills/ppt-deck-builder/references/provider-adapters.md`：自定义 provider 协议说明
 - `skills/ppt-deck-builder/scripts/generate_from_plan.py`：主出图脚本
 - `skills/ppt-deck-builder/scripts/build_pptx_from_images.py`：图片打包为 PPTX
@@ -161,6 +184,19 @@ The actual skill source lives under `skills/`. It is suitable for OpenClaw and a
 - packaging final slide images into a `.pptx`
 
 It is optimized for finished-image delivery decks, where each slide is generated as a complete visual page and then packed into PowerPoint.
+
+### Style Presets Are Now Supported
+
+This skill now supports choosing a deck-level visual direction before prompt writing.
+
+Recommended presets:
+
+- `dark_blue_business`
+- `light_consulting`
+- `whiteboard_handdrawn`
+- `custom`
+
+`whiteboard_handdrawn` is now a first-class preset in the skill, intended for full-frame whiteboard pages, hard-pen Chinese handwriting, and hand-drawn color illustration workflows.
 
 ### Repository Layout
 
@@ -265,19 +301,29 @@ bash scripts/run_image_batch.sh plan.json output_dir
 ### Typical Workflow
 
 1. define audience, goal, and page sequence
-2. write one page brief per slide
-3. convert briefs into a slide plan JSON
-4. generate a small sample first
-5. run the full batch
-6. rerun only weak pages
-7. QA the full image set
-8. package the images into a `.pptx`
+2. choose the deck-level style preset
+3. write one page brief per slide
+4. convert briefs into a slide plan JSON
+5. generate a small sample first
+6. run the full batch
+7. rerun only weak pages
+8. QA the full image set
+9. package the images into a `.pptx`
+
+For strong visual styles, the recommended flow is:
+
+1. choose the style preset first
+2. run a small sample pack
+3. approve one style anchor page
+4. run the full batch
+5. repair only the weak pages
 
 ### Key Files
 
 - `skills/ppt-deck-builder/SKILL.md`: main skill instructions
 - `skills/ppt-deck-builder/assets/page_brief_template.md`: page brief template
 - `skills/ppt-deck-builder/assets/slide_plan_template.json`: slide plan template
+- `skills/ppt-deck-builder/references/style-presets.md`: style preset reference
 - `skills/ppt-deck-builder/references/provider-adapters.md`: custom provider contract
 - `skills/ppt-deck-builder/scripts/generate_from_plan.py`: main image generation entrypoint
 - `skills/ppt-deck-builder/scripts/build_pptx_from_images.py`: package slide images into PowerPoint
