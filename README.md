@@ -32,6 +32,18 @@
 
 前提仍然是：每个句子都要绑定到一个明确区域，不能变成漂浮的小碎标签。
 
+### 示例页面
+
+下面这几页来自 `grsai_ai_science_deck/full_deck_micro_modules`，用于展示 `grsai + gpt-image-2` 在白底手绘讲解风格下，对“小模块高强度信息页”的实际承载效果。
+
+| slide-01 | slide-04 |
+| --- | --- |
+| ![slide-01](examples/grsai_ai_science_deck_micro_modules/slide-01.png) | ![slide-04](examples/grsai_ai_science_deck_micro_modules/slide-04.png) |
+
+| slide-06 | slide-08 |
+| --- | --- |
+| ![slide-06](examples/grsai_ai_science_deck_micro_modules/slide-06.png) | ![slide-08](examples/grsai_ai_science_deck_micro_modules/slide-08.png) |
+
 ### 目录结构
 
 ```text
@@ -176,6 +188,18 @@ With `grsai + gpt-image-2`, the workflow now allows denser slide experiments aft
 - `title + 3-5 explanation panels with longer sentences`
 
 The rule still holds that every sentence must belong to one named region instead of floating as micro-label clutter.
+
+### Sample Slides
+
+The following slides come from `grsai_ai_science_deck/full_deck_micro_modules` and show how `grsai + gpt-image-2` behaves on white-background hand-drawn explanation slides with intentionally higher module density.
+
+| slide-01 | slide-04 |
+| --- | --- |
+| ![slide-01](examples/grsai_ai_science_deck_micro_modules/slide-01.png) | ![slide-04](examples/grsai_ai_science_deck_micro_modules/slide-04.png) |
+
+| slide-06 | slide-08 |
+| --- | --- |
+| ![slide-06](examples/grsai_ai_science_deck_micro_modules/slide-06.png) | ![slide-08](examples/grsai_ai_science_deck_micro_modules/slide-08.png) |
 
 ### Install
 
