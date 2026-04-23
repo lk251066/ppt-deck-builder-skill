@@ -21,17 +21,25 @@ Provider resolution order:
 2. CLI `--provider`
 3. plan `image_provider`
 4. env `PPT_IMAGE_PROVIDER`
-5. default `runninghub_g31`
+5. default `grsai`
 
 Built-in providers:
 
 - `runninghub_g31`
+- `grsai`
 - `command`
 
 ## Environment
 
-Before first real run, confirm whether a RunningHub API key is available.
-Default image model for this skill is `rhart-image-n-g31-flash`.
+Before first real run, confirm whether a GrsAI API key is available for the default path.
+Default image model for this skill is `gpt-image-2`.
+
+For GrsAI:
+
+```bash
+export PPT_IMAGE_PROVIDER="grsai"
+export GRSAI_API_KEY="your_api_key"
+```
 
 For RunningHub:
 
@@ -47,7 +55,7 @@ export PPT_IMAGE_PROVIDER="command"
 export PPT_IMAGE_PROVIDER_COMMAND="python3 scripts/provider_mock_png.py"
 ```
 
-For OpenClaw-style command paths, use `{baseDir}` inside skill instructions or plan files.
+For portable skill command paths, use `{baseDir}` inside skill instructions or plan files.
 The generator expands `{baseDir}` automatically inside provider options such as `command` or `cwd`.
 
 ## Quick Checks

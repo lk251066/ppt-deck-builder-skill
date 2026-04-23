@@ -7,7 +7,8 @@
 - Start with page identity and page type before style words.
 - Put exact allowed text lines at the end.
 - Tell the model each line appears once only.
-- Prefer fewer, larger text groups.
+- Prefer fewer, larger text groups by default.
+- If the provider is `grsai` and the model is `gpt-image-2`, you may relax this default after a stable reference pack and intentionally test denser text layouts.
 - Give the page a composition job, not just a style direction.
 
 ## Page Identity First
@@ -40,6 +41,7 @@ Use this order unless a provider needs a stricter format:
 - Shorten the title first.
 - Shorten card titles before shortening body text.
 - Remove repeated ideas.
+- Remove source-attribution lines such as `基于某某内容简化` unless the user explicitly wants them kept.
 - Decide which lines must stay visible on the page.
 - Decide which region owns each sentence before adding density.
 
@@ -52,6 +54,8 @@ Use this order unless a provider needs a stricter format:
 - High-information pages can carry more text, but only when each sentence has a fixed region and large enough text area.
 - Do not increase information density by repeating the same idea in multiple cards, strips, or footers.
 - Prefer `title + 4-6 modules + 1 summary strip` before trying long paragraph layouts.
+- For `grsai` with `gpt-image-2`, a validated dense-mode page may extend this to `title + 6-10 modules + 1 summary strip`.
+- For `grsai` with `gpt-image-2`, another stable dense pattern is `title + 3-5 explanation panels` where each panel carries a longer sentence.
 
 ## Reading Path And Region Binding
 
@@ -60,6 +64,7 @@ Use this order unless a provider needs a stricter format:
 - Keep region names simple and concrete: `title zone`, `left conclusion card`, `center path nodes`, `bottom summary strip`.
 - If one block should dominate, say so explicitly.
 - For dense pages, enlarge the explanation region instead of duplicating text inside the main diagram.
+- If the page contains both a page title and an inner bubble or panel title, make them distinct in wording and role instead of near-duplicates.
 
 ## Dense Page Rules
 
@@ -70,6 +75,8 @@ Use this order unless a provider needs a stricter format:
 - Give each long sentence one dedicated region.
 - Use one summary strip at most.
 - If a page needs more explanation, expand one lower explanation area instead of duplicating copy inside the main diagram.
+- For `grsai` with `gpt-image-2`, dense-page stress tests may use either more small modules or longer explanation sentences, but each sentence still needs one clear home region.
+- Even in dense mode, avoid tiny floating labels, crowded sidebars, and decorative micro-copy that do not belong to a named module.
 
 ## Chinese Text Guardrails
 
@@ -96,10 +103,12 @@ Use this order unless a provider needs a stricter format:
 - Forbid room background, desk, projector screen, office wall, and classroom environment.
 - Ask for elegant Chinese hard-pen handwriting, not printed font and not thick marker block text.
 - Ask for hand-drawn cartoon illustration with black outline and marker color fill.
+- If comic people are used, define whether they are supporting, medium, or dominant. Default to supporting only for client-facing decks.
 - If the page includes a mascot, state the mascot type explicitly and keep it stable across all pages.
 - Prefer 3-6 large handwritten text groups, not many tiny labels.
 - Forbid extra handwritten notes, replacement titles, or freestyle annotations unless they are part of the approved text.
 - If the model keeps inventing extra notes, explicitly say `the page may only contain the approved text lines`.
+- If the user wants hand-drawn explanation without a visible board frame, do not force this preset; switch to a `custom` borderless hand-drawn brief with pure white canvas and no border.
 
 ## Poster Avoidance Rules
 
@@ -133,6 +142,7 @@ Use this order unless a provider needs a stricter format:
 - If one block should dominate, say so explicitly.
 - For high-information pages, describe which sentences belong in which regions.
 - If the page already has a strong structure, add explanation text around that structure instead of replacing it.
+- For `grsai` with `gpt-image-2`, denser structures can be tested deliberately after sample validation, but only by expanding named modules or named explanation panels.
 
 ## Sample-First Rules
 
@@ -155,6 +165,7 @@ Use this order unless a provider needs a stricter format:
 - Page looks pretty but not like a slide -> strengthen page identity, page type, and reading path before changing color language.
 - Whiteboard page added extra doodles or wrong mascot -> lock approved text harder, reduce optional decoration, and restate mascot type explicitly.
 - Whiteboard page replaced the main title -> restate the exact title and explicitly forbid replacement, summary, or alternate headings.
+- Whiteboard page duplicated a heading in both the page title and a panel title -> rewrite the labels so each heading appears once with one distinct role, then rerun only that page.
 
 ## Provider Recovery
 

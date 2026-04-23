@@ -4,9 +4,9 @@
   "style_preset": "dark_blue_business",
   "style_goal": "Client-facing deck with one stable visual direction.",
   "style_anchor_strategy": "sample_first_then_full_batch",
-  "image_provider": "runninghub_g31",
+  "image_provider": "grsai",
   "provider_options": {
-    "model": "rhart-image-n-g31-flash"
+    "model": "gpt-image-2"
   },
   "resolution": "4k",
   "aspect_ratio": "16:9",

@@ -8,12 +8,15 @@ Story design, page briefs, prompt rules, QA, and PPTX packaging should not depen
 ## Built-In Provider Names
 
 - `runninghub_g31`
+- `grsai`
 - `command`
 
 ## Recommended Strategy
 
-- Keep `runninghub_g31` as the ready-to-run default.
-- Use `command` when OpenClaw or another agent should own the image backend.
+- Keep `grsai` as the ready-to-run default.
+- Keep `runninghub_g31` as the alternative built-in adapter when you need the RunningHub path.
+- Use `grsai` when the supplier should be switchable inside the built-in PPT workflow and only provider plus model need to change in the plan.
+- Use `command` when the host agent or another toolchain should own the image backend.
 - Put backend-specific changes in one adapter command instead of editing the story and layout workflow.
 - Start new providers with a small reference pack before the full batch.
 - If the workflow needs reference-image style anchoring, image editing, or multi-image conditioning, prefer `command` so the adapter can evolve without changing the deck workflow.
@@ -114,15 +117,62 @@ If the provider still fails:
 - lower sample resolution first
 - keep `max-workers=1` until the sample is stable
 
-## OpenClaw Guidance
+## GrsAI Notes
 
-When used from OpenClaw:
+For `grsai`, supported provider options include:
+
+- `model`
+- `base_url`
+- `submit_path`
+- `result_path`
+- `api_key_env`
+- `request_overrides`
+
+Default behavior:
+
+- model: `gpt-image-2`
+- base URL: `https://grsai.dakka.com.cn`
+- submit path: `/v1/draw/completions`
+- result path: `/v1/draw/result`
+- auth env: `GRSAI_API_KEY`
+
+Behavior mapping:
+
+- PPT `aspect_ratio` is translated to GrsAI `size`
+- PPT prompt text is forwarded as `prompt`
+- `reference_images` and `style_anchor_image` are forwarded automatically when present
+- local reference-image paths are converted to data URIs before submission
+
+Text-capacity note:
+
+- When the provider is `grsai` and the model is `gpt-image-2`, the workflow may safely test denser visible text after one stable reference pack is approved.
+- Common dense-mode patterns that performed better than the default guardrails are:
+  `title + 6-10 small modules + 1 conclusion strip`
+  `title + 3-5 larger explanation panels with longer sentences`
+- Even in dense mode, keep each sentence assigned to one named region and avoid floating micro-labels.
+
+Recommended plan pattern:
+
+```json
+{
+  "image_provider": "grsai",
+  "provider_options": {
+    "model": "gpt-image-2"
+  }
+}
+```
+
+Keep callback, polling, and low-level endpoint details inside the built-in provider instead of repeating them in every slide plan.
+
+## Host Agent Guidance
+
+When used from another host agent or tool runner:
 
 - prefer `{baseDir}` in skill instructions
-- let OpenClaw change only the adapter command or provider options
+- let the host agent change only the adapter command or provider options
 - avoid rewriting the main workflow unless the output contract changes
-- if OpenClaw wants stronger cross-page style consistency, it should attach `reference_images` or `style_anchor_image` through the `command` adapter instead of hardcoding one image provider into the skill
-- if OpenClaw wants image-to-image continuation or whiteboard-style follow-on pages from one approved sample, use `command` and pass that approved sample as a reference image rather than weakening the deck plan itself
+- if the host agent wants stronger cross-page style consistency, it should attach `reference_images` or `style_anchor_image` through the `command` adapter instead of hardcoding one image provider into the skill
+- if the host agent wants image-to-image continuation or whiteboard-style follow-on pages from one approved sample, use `command` and pass that approved sample as a reference image rather than weakening the deck plan itself
 
 ## Useful Local Files
 

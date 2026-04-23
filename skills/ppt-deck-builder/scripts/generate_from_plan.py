@@ -4,6 +4,7 @@ Generate slide images from a plan JSON using a selectable image provider.
 
 Built-in providers:
 - runninghub_g31: RunningHub Standard Model API
+- grsai: GrsAI draw API
 - command: call a local command adapter that returns JSON on stdout
 
 This script intentionally does NOT store API keys in any file.
@@ -30,10 +31,28 @@ import requests
 
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_PROVIDER = "runninghub_g31"
+DEFAULT_PROVIDER = "grsai"
 DEFAULT_RUNNINGHUB_BASE = "https://www.runninghub.cn/openapi/v2"
 DEFAULT_RUNNINGHUB_MODEL = "rhart-image-n-g31-flash"
 DEFAULT_QUERY_PATH = "/query"
+DEFAULT_GRSAI_BASE = "https://grsai.dakka.com.cn"
+DEFAULT_GRSAI_MODEL = "gpt-image-2"
+GRSAI_SUPPORTED_SIZES = {
+    "auto",
+    "1:1",
+    "3:2",
+    "2:3",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "21:9",
+    "9:21",
+    "1:3",
+    "3:1",
+    "2:1",
+    "1:2",
+}
 
 
 def as_dict(value: Any) -> dict[str, Any]:
@@ -77,6 +96,9 @@ def normalize_provider(name: str | None) -> str:
     aliases = {
         "runninghub": "runninghub_g31",
         "runninghub_g31": "runninghub_g31",
+        "grsai": "grsai",
+        "grsai_draw": "grsai",
+        "grsai_gpt_image": "grsai",
         "command": "command",
         "custom-command": "command",
     }
@@ -197,6 +219,71 @@ def slim_attempt_record(record: dict[str, Any]) -> dict[str, Any]:
                 provider_response[key] = f"<{key}:{len(provider_response[key])} chars>"
         slim["provider_response"] = provider_response
     return slim
+
+
+def guess_mime_type(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix in {".jpg", ".jpeg"}:
+        return "image/jpeg"
+    if suffix == ".webp":
+        return "image/webp"
+    if suffix == ".gif":
+        return "image/gif"
+    return "image/png"
+
+
+def maybe_to_data_uri(value: str) -> str:
+    lowered = value.lower()
+    if lowered.startswith("http://") or lowered.startswith("https://") or lowered.startswith("data:"):
+        return value
+
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    if not path.exists() or not path.is_file():
+        return value
+
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{guess_mime_type(path)};base64,{encoded}"
+
+
+def collect_reference_images(slide: dict[str, Any], provider_options: dict[str, Any]) -> list[str]:
+    raw_images: list[Any] = []
+
+    for key in ("reference_images", "style_anchor_images"):
+        value = slide.get(key)
+        if isinstance(value, list):
+            raw_images.extend(value)
+
+    style_anchor_image = slide.get("style_anchor_image")
+    if isinstance(style_anchor_image, str) and style_anchor_image.strip():
+        raw_images.append(style_anchor_image.strip())
+
+    provider_reference_images = provider_options.get("reference_images")
+    if isinstance(provider_reference_images, list):
+        raw_images.extend(provider_reference_images)
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in raw_images:
+        if not isinstance(item, str):
+            continue
+        value = item.strip()
+        if not value:
+            continue
+        encoded = maybe_to_data_uri(value)
+        if encoded in seen:
+            continue
+        seen.add(encoded)
+        normalized.append(encoded)
+    return normalized
+
+
+def pick_grsai_size(aspect_ratio: str, provider_options: dict[str, Any]) -> str:
+    size = str(provider_options.get("size") or aspect_ratio or "auto").strip()
+    if size in GRSAI_SUPPORTED_SIZES:
+        return size
+    return "auto"
 
 
 def write_image_from_result(result: dict[str, Any], out: Path) -> dict[str, Any] | None:
@@ -321,6 +408,145 @@ def run_runninghub_attempt(
 
     attempt_record["status"] = "SUCCESS"
     attempt_record["image_url"] = image_url
+    return attempt_record
+
+
+def is_retryable_grsai_failure(final_resp: dict[str, Any] | None) -> bool:
+    if not final_resp:
+        return False
+    data = as_dict(final_resp.get("data"))
+    reason = str(data.get("failure_reason") or "")
+    error = str(data.get("error") or "")
+    lowered = f"{reason} {error}".lower()
+    return any(
+        token in lowered
+        for token in (
+            "excessive system load",
+            "system load",
+            "server busy",
+            "try again later",
+            "timeout",
+        )
+    )
+
+
+def run_grsai_attempt(
+    *,
+    slide: dict[str, Any],
+    prompt: str,
+    resolution: str,
+    aspect_ratio: str,
+    provider_options: dict[str, Any],
+    max_poll_seconds: int,
+) -> dict[str, Any]:
+    del resolution
+
+    base_url = str(provider_options.get("base_url") or os.getenv("GRSAI_BASE_URL") or DEFAULT_GRSAI_BASE).rstrip("/")
+    model = str(provider_options.get("model") or os.getenv("GRSAI_MODEL") or DEFAULT_GRSAI_MODEL)
+    submit_path = str(provider_options.get("submit_path") or "/v1/draw/completions")
+    result_path = str(provider_options.get("result_path") or "/v1/draw/result")
+    api_key_env = str(provider_options.get("api_key_env") or "GRSAI_API_KEY")
+    api_key = os.getenv(api_key_env)
+    if not api_key:
+        return {
+            "status": "FAILED",
+            "provider": "grsai",
+            "model": model,
+            "reason": f"{api_key_env} is not set",
+        }
+
+    request_overrides = as_dict(provider_options.get("request_overrides"))
+    payload: dict[str, Any] = {
+        "model": model,
+        "prompt": prompt,
+        "size": pick_grsai_size(aspect_ratio, provider_options),
+        "webHook": "-1",
+        "shutProgress": True,
+    }
+    reference_images = collect_reference_images(slide, provider_options)
+    if reference_images:
+        payload["urls"] = reference_images
+    payload.update(request_overrides)
+
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    submit_url = f"{base_url}{submit_path if submit_path.startswith('/') else '/' + submit_path}"
+    result_url = f"{base_url}{result_path if result_path.startswith('/') else '/' + result_path}"
+
+    try:
+        submit_resp = requests.post(submit_url, headers=headers, json=payload, timeout=120)
+        submit_resp.raise_for_status()
+        submit_json = submit_resp.json()
+    except requests.RequestException as exc:
+        return {
+            "status": "FAILED",
+            "provider": "grsai",
+            "model": model,
+            "reason": f"submit_request_failed: {exc}",
+            "retryable": True,
+        }
+
+    submit_data = as_dict(submit_json.get("data"))
+    task_id = submit_data.get("id") or submit_json.get("id")
+    if not task_id:
+        return {
+            "status": "FAILED",
+            "provider": "grsai",
+            "model": model,
+            "submit_response": submit_json,
+            "reason": "no_task_id",
+        }
+
+    start = time.time()
+    final_json: dict[str, Any] | None = None
+    while time.time() - start < max_poll_seconds:
+        try:
+            q = requests.post(result_url, headers=headers, json={"id": task_id}, timeout=120)
+            q.raise_for_status()
+            qj = q.json()
+        except requests.RequestException as exc:
+            attempt_record = {
+                "status": "FAILED",
+                "provider": "grsai",
+                "model": model,
+                "taskId": task_id,
+                "submit_response": submit_json,
+                "reason": f"poll_request_failed: {exc}",
+                "retryable": True,
+            }
+            return attempt_record
+        data = as_dict(qj.get("data"))
+        status = str(data.get("status") or "").lower()
+        if status in {"succeeded", "failed", "cancelled"}:
+            final_json = qj
+            break
+        time.sleep(4)
+
+    attempt_record: dict[str, Any] = {
+        "status": "FAILED",
+        "provider": "grsai",
+        "model": model,
+        "taskId": task_id,
+        "submit_response": submit_json,
+        "final_response": final_json,
+    }
+
+    if not final_json:
+        attempt_record["reason"] = "poll_timeout"
+        return attempt_record
+
+    final_data = as_dict(final_json.get("data"))
+    final_status = str(final_data.get("status") or "").lower()
+    if final_status != "succeeded":
+        attempt_record["reason"] = final_data.get("error") or final_data.get("failure_reason") or final_status or "failed"
+        return attempt_record
+
+    image_url = download_first_image(final_data.get("results")) or final_data.get("url")
+    if not image_url:
+        attempt_record["reason"] = "no_image_url"
+        return attempt_record
+
+    attempt_record["status"] = "SUCCESS"
+    attempt_record["image_url"] = str(image_url)
     return attempt_record
 
 
@@ -450,6 +676,15 @@ def run_provider_attempt(
             provider_options=provider_options,
             max_poll_seconds=max_poll_seconds,
         )
+    if provider == "grsai":
+        return run_grsai_attempt(
+            slide=slide,
+            prompt=prompt,
+            resolution=resolution,
+            aspect_ratio=aspect_ratio,
+            provider_options=provider_options,
+            max_poll_seconds=max_poll_seconds,
+        )
     if provider == "command":
         return run_command_attempt(
             slide=slide,
@@ -520,6 +755,8 @@ def generate_one_slide(
         if result.get("status") != "SUCCESS":
             if provider == "runninghub_g31" and is_retryable_runninghub_failure(result.get("final_response")):
                 continue
+            if provider == "grsai" and (result.get("retryable") or is_retryable_grsai_failure(result.get("final_response"))):
+                continue
             if provider == "command" and result.get("retryable"):
                 continue
             break
@@ -551,7 +788,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--plan", required=True, help="Path to slides_plan_*.json")
     ap.add_argument("--outdir", required=True, help="Output directory for images")
-    ap.add_argument("--provider", help="Image provider override, e.g. runninghub_g31 or command")
+    ap.add_argument("--provider", help="Image provider override, e.g. grsai, runninghub_g31, or command")
     ap.add_argument("--provider-command", help="Local adapter command for provider=command")
     ap.add_argument("--provider-option", action="append", default=[], metavar="KEY=VALUE", help="Extra provider option override")
     ap.add_argument("--model", help="Model override for providers that use a model name")

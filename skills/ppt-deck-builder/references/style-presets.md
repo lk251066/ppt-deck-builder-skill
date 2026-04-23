@@ -55,6 +55,7 @@ Core traits:
 - hand-drawn colored illustrations with black outline
 - red and black handwritten annotation marks
 - stable mascot policy if the user wants a mascot
+- comic people can be used as supporting explanation elements
 
 Best uses:
 - training decks
@@ -74,6 +75,9 @@ Rules:
 - explicitly lock exact title text when title wording matters
 - explicitly forbid extra handwritten notes when the page must stay clean
 - validate one sample title page and one dense page before full-batch generation
+- if comic people are used in a client-facing deck, keep them supporting by default rather than dominant
+- if a page contains a title plus an inner panel title, avoid near-duplicate wording such as repeating `当前招聘进度` twice
+- if the user wants the hand-drawn teaching feeling but does not want a visible board frame, do not force this preset and switch to a `custom` borderless hand-drawn brief instead
 
 Recommended prompt phrases:
 - `full-frame whiteboard, all four metallic borders visible`
@@ -98,6 +102,7 @@ Rules:
 - Default to `dark_blue_business` if the user does not request a stronger style.
 - Switch to `light_consulting` when dense Chinese text is the main priority.
 - Switch to `whiteboard_handdrawn` only when the user explicitly wants that teaching-board feeling.
+- If the user wants hand-drawn explanation without visible board borders, use `custom` with a borderless hand-drawn style brief rather than `whiteboard_handdrawn`.
 - Use `custom` when the user provides specific image references or a pre-existing house style.
 
 ## Plan File Pattern

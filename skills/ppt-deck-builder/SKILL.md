@@ -1,7 +1,7 @@
 ---
 name: ppt-deck-builder
 description: Use when building or revising a PPT/演示文稿 in a portable, self-contained workflow folder, especially when the job spans storyline design, page briefs, page-level text compression, fixed-text image prompts, style-selectable slide image generation, sample-pack generation, page repair, and PPTX packaging without depending on repo files outside this skill folder.
-version: 0.3.0
+version: 0.4.0
 metadata:
   openclaw:
     requires:
@@ -21,7 +21,7 @@ Everything needed by the workflow lives inside this skill folder: process guidan
 - The user wants to build a new deck from notes, PDFs, spreadsheets, or an existing deck.
 - The user wants to generate slide images with fixed text and package them into a `.pptx`.
 - The user wants one skill folder instead of multiple linked skills.
-- The user wants the image provider to stay replaceable so OpenClaw or another agent can switch providers later.
+- The user wants the image provider to stay replaceable so another agent or toolchain can switch providers later.
 - The user wants to choose a visual direction such as dark blue business, light consulting, or whiteboard hand-drawn before generation.
 
 ## Do Not Use When
@@ -42,25 +42,27 @@ This workflow expects:
 - provider-specific environment variables only for the chosen provider
 
 Before first generation:
-- Ask whether a RunningHub API key is available.
-- Default model is `rhart-image-n-g31-flash`.
-- If no provider is specified, stay on `runninghub_g31`.
+- Ask whether a GrsAI API key is available for the default path.
+- Default model is `gpt-image-2`.
+- If no provider is specified, stay on `grsai`.
+- If the user is simplifying an existing deck and the new page count, density, or tone are not obvious, confirm the outline before generation.
 
-OpenClaw-safe paths use `{baseDir}`.
+Portable skill paths use `{baseDir}`.
 Plain shell usage still works from the root of this skill folder with `bash scripts/...`.
 
 ## Workflow Decision Tree
 
 1. If the input is messy or vague, start with story design.
-2. Choose one deck-level style preset or define a custom style direction before prompt writing.
-3. If the page sequence exists, define the page type, page identity sentence, and reading path before prompt writing.
-4. Compress page titles and visible text before adding style language.
-5. If the deck is image-based, generate a small reference pack before the full batch.
-6. If one page sets the desired visual standard, treat it as a style anchor for later pages when the provider supports reference images.
-7. If text looks unstable, simplify the page before adding more visual detail.
-8. After full-batch generation, build review contact sheets and inspect the whole deck.
-9. If any page has text, layout, tone, or style-drift issues, rerun only that page and review again.
-10. Package only after the full image set is reviewed and approved.
+2. If the user is simplifying an existing deck, confirm the reduced outline first when page count or tone choices have non-obvious consequences.
+3. Choose one deck-level style preset or define a custom style direction before prompt writing.
+4. If the page sequence exists, define the page type, page identity sentence, and reading path before prompt writing.
+5. Compress page titles and visible text before adding style language.
+6. If the deck is image-based, generate a small reference pack before the full batch.
+7. If one page sets the desired visual standard, treat it as a style anchor for later pages when the provider supports reference images.
+8. If text looks unstable, simplify the page before adding more visual detail.
+9. After full-batch generation, build review contact sheets and inspect the whole deck.
+10. If any page has text, layout, tone, or style-drift issues, rerun only that page and review again.
+11. Package only after the full image set is reviewed and approved.
 
 ## Core Workflow
 
@@ -71,6 +73,7 @@ Plain shell usage still works from the root of this skill folder with `bash scri
 - Choose a deck-level style preset early. Default to a business presentation style unless the user explicitly wants a stronger style such as whiteboard hand-drawn.
 - Reduce the deck to one message per page.
 - Draft a page list with title, role, and key takeaway.
+- If the deck is being simplified from an existing source deck, confirm the reduced page list before generation when the simplification direction is not obvious.
 
 Read when needed:
 - `references/story-patterns.md`
@@ -105,7 +108,9 @@ Read when needed:
 - Do not raise information density by repeating the same idea in both the diagram area and the footer area.
 - Treat the page as an integrated text-and-background PPT page, not as a background image that will be fixed later.
 - For Chinese image pages, prefer fewer but larger text groups over many scattered micro-labels.
-- For whiteboard-style pages, reduce visible text even earlier and prefer 3-6 large handwritten groups instead of many tiny labels.
+- For `grsai` with `gpt-image-2`, once a reference pack proves the layout is stable, you may intentionally relax the default density limit and test either more modules or longer explanation sentences.
+- For `grsai` with `gpt-image-2`, dense-page test patterns can include `title + 6-10 small modules + 1 conclusion strip` or `title + 3-5 longer explanation panels`.
+- For whiteboard-style pages, reduce visible text earlier by default and prefer 3-6 large handwritten groups instead of many tiny labels, unless the chosen provider and model have already proven they can carry denser handwritten text.
 
 Use these local resources:
 - `assets/page_brief_template.md`
@@ -126,7 +131,12 @@ Use these local resources:
 - Keep the deck's primary business visual standard first.
 - Use a light consulting-style layout with dark text only as a fallback when dense text remains blurry or repetitive after prompt repair.
 - When a model supports richer text rendering, still avoid long paragraph blocks until a reference pack proves the layout is stable.
+- For `grsai` with `gpt-image-2`, a stable reference pack can unlock denser prompt plans with more visible modules or longer explanation lines than the default guardrails allow.
 - If the chosen style is `whiteboard_handdrawn`, explicitly lock the whiteboard borders, zero room background, handwritten Chinese, hand-drawn illustration behavior, and mascot policy if any.
+- If the user wants hand-drawn explanation without a physical board frame, switch to a `custom` borderless hand-drawn style brief instead of forcing `whiteboard_handdrawn`.
+- If the chosen style uses comic people or a mascot, define whether they are supporting, medium, or dominant. Default to supporting only for client-facing decks.
+- If a page contains a title plus a bubble title or panel title, make those labels distinct instead of semantically duplicated.
+- Do not keep source-attribution lines such as `基于某某内容简化` unless the user explicitly wants them visible.
 
 Use these local resources:
 - `references/prompt-rules.md`
@@ -149,7 +159,7 @@ Use a small sample to validate:
 - whether the page reads like a client-facing slide instead of a poster or training handout
 - whether one approved page can act as a style anchor for later pages
 
-OpenClaw-safe reference pack:
+Portable `{baseDir}` reference pack:
 ```bash
 bash {baseDir}/scripts/run_reference_pack.sh plan.json output_dir
 ```
@@ -171,21 +181,23 @@ The image provider can be selected in this order:
 2. CLI `--provider`
 3. Plan-level `image_provider`
 4. Environment variable `PPT_IMAGE_PROVIDER`
-5. Default `runninghub_g31`
+5. Default `grsai`
 
 Notes:
 - The built-in `runninghub_g31` adapter targets the RunningHub `rhart-image-n-g31-flash/text-to-image` path by default.
-- If the backend should use reference images, image editing, or multi-image style anchoring, switch to `command` and let OpenClaw own that adapter logic.
+- The built-in `grsai` adapter targets the GrsAI draw API and uses `gpt-image-2` by default while keeping callback and polling details inside the provider layer.
+- If the backend should use reference images, image editing, or multi-image style anchoring, switch to `command` and let the host agent own that adapter logic.
 - If the user wants strong cross-page style continuation such as a whiteboard course deck, prefer a sample-first workflow and treat one approved page as the style anchor for later reruns.
 
 Built-in providers:
+- `grsai`
 - `runninghub_g31`
 - `command`
 
 `command` is the generic escape hatch.
-It lets OpenClaw or another agent replace the image backend without changing the main workflow script.
+It lets another agent or toolchain replace the image backend without changing the main workflow script.
 
-OpenClaw-safe full batch:
+Portable `{baseDir}` full batch:
 ```bash
 bash {baseDir}/scripts/run_image_batch.sh plan.json output_dir
 ```
@@ -195,7 +207,7 @@ Plain shell from the skill root:
 bash scripts/run_image_batch.sh plan.json output_dir
 ```
 
-OpenClaw-safe end-to-end generate + package:
+Portable `{baseDir}` end-to-end generate + package:
 ```bash
 bash {baseDir}/scripts/run_full_deck.sh plan.json output_dir deck.pptx
 ```
@@ -205,7 +217,7 @@ Plain shell from the skill root:
 bash scripts/run_full_deck.sh plan.json output_dir deck.pptx
 ```
 
-OpenClaw-safe single-page rerun:
+Portable `{baseDir}` single-page rerun:
 ```bash
 bash {baseDir}/scripts/rerun_single_page.sh plan.json output_dir 8
 ```
@@ -216,7 +228,7 @@ Check every page for wording accuracy, text sharpness, hierarchy, layout noise, 
 Do not treat generation success as delivery success.
 Build review contact sheets, inspect the whole deck, rerun only the bad pages, and package only after the corrected image set is approved.
 
-OpenClaw-safe contact sheet review:
+Portable `{baseDir}` contact sheet review:
 ```bash
 python3 {baseDir}/scripts/build_contact_sheet.py output_dir
 ```
@@ -226,12 +238,12 @@ Plain shell from the skill root:
 python3 scripts/build_contact_sheet.py output_dir
 ```
 
-OpenClaw-safe single-page repair:
+Portable `{baseDir}` single-page repair:
 ```bash
 bash {baseDir}/scripts/rerun_single_page.sh plan.json output_dir 8
 ```
 
-OpenClaw-safe packaging after review:
+Portable `{baseDir}` packaging after review:
 ```bash
 bash {baseDir}/scripts/package_image_deck.sh output_dir deck.pptx plan.json
 ```
@@ -252,6 +264,7 @@ Read when needed:
 - If a page keeps failing, repair the story or prompt first, not the packaging step.
 - If a page looks stylish but not presentation-ready, strengthen page identity, reading path, and text-region mapping before changing colors or effects.
 - If a whiteboard-style page starts adding the wrong mascot, wrong title, or extra handwritten notes, tighten the exact text list and explicitly forbid replacement or summary text before rerunning that page.
+- If a whiteboard-style page repeats a title in a second panel or strip, rewrite the page so each heading has one distinct role and one distinct wording before rerunning.
 
 ## Local Tools In This Folder
 
@@ -271,6 +284,8 @@ Read when needed:
 
 - One page should do one job.
 - Prefer fewer, larger text groups in image-based pages.
+- Prefer fewer, larger text groups in image-based pages by default.
+- If the provider is `grsai` and the model is `gpt-image-2`, you may deliberately push text density after sample validation, but keep each sentence bound to one region and avoid floating micro-label clutter.
 - Shorten titles before prompting; do not hope the model will solve crowded copy.
 - Give each page a composition job, not just a style direction.
 - Define page identity and reading path before adding visual styling.

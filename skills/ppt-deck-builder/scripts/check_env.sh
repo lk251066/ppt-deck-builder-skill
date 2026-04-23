@@ -16,7 +16,7 @@ if missing:
     raise SystemExit(1)
 PY
 
-PROVIDER="${PPT_IMAGE_PROVIDER:-runninghub_g31}"
+PROVIDER="${PPT_IMAGE_PROVIDER:-grsai}"
 echo "PPT_IMAGE_PROVIDER=$PROVIDER"
 
 if [[ -n "${PPT_IMAGE_PROVIDER_COMMAND:-}" ]]; then
@@ -31,6 +31,13 @@ case "$PROVIDER" in
       echo "RUNNINGHUB_API_KEY is set"
     else
       echo "RUNNINGHUB_API_KEY is not set"
+    fi
+    ;;
+  grsai|grsai_draw|grsai_gpt_image)
+    if [[ -n "${GRSAI_API_KEY:-}" ]]; then
+      echo "GRSAI_API_KEY is set"
+    else
+      echo "GRSAI_API_KEY is not set"
     fi
     ;;
   command|custom-command)

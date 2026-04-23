@@ -1,37 +1,38 @@
-# Generic PPT Generation Skills
+# PPT Deck Builder Skill
 
 ## 中文说明
 
-通用的 PPT 生成 skills 仓库。
+这是一个可复用的 `ppt-deck-builder` skill 仓库，用来完成“资料整理 -> 页面规划 -> 批量出图 -> 单页返修 -> 打包 PPTX”的整套流程。
 
-这个仓库的实际技能内容位于 `skills/` 目录下，适合接入 OpenClaw，也适合其他支持本地 skills 目录的工作流使用。
+仓库实际内容位于 `skills/ppt-deck-builder/`，可以复制到项目级 `skills/` 目录，也可以复制到本机共享 skill 目录中使用。
 
-### 这个 skill 能做什么
+### 适合做什么
 
-`ppt-deck-builder` 适合处理这类任务：
+- 把笔记、PDF、Excel、旧 PPT 整理成演示稿结构
+- 为每一页生成 page brief 和固定可见文字的出图计划
+- 调用可切换图片后端批量生成整套页面
+- 只返修问题页，而不是重跑整套
+- 把最终图片页面打包为 `.pptx`
 
-- 把笔记、PDF、表格、旧 PPT 整理成演示逻辑
-- 生成每一页的 page brief 和固定文字出图提示词
-- 调用可替换的图片生成后端批量出图
-- 单页返修，而不是整套重跑
-- 将最终页面图片打包成 `.pptx`
+这套 skill 更适合“成品图交付型 PPT”，也就是每页直接生成接近成品的页面图，再统一打包进 PowerPoint。
 
-它更适合“成品交付型 PPT”流程，也就是每页先生成成品图，再统一打包进 PowerPoint。
+### 默认图片通道
 
-### 现在支持风格预设选择
+- 默认 provider：`grsai`
+- 默认模型：`gpt-image-2`
+- 备选 provider：`runninghub_g31`
+- 通用扩展 provider：`command`
 
-这套 skill 现在支持在出图前先锁定整套 deck 的视觉方向。
+如果没有显式指定 provider，流程默认走 `grsai + gpt-image-2`。
 
-推荐预设：
+在 `grsai + gpt-image-2` 下，这套 workflow 已经允许在参考样张稳定后适度放开原有的信息密度限制，例如：
 
-- `dark_blue_business`：深蓝商务汇报风
-- `light_consulting`：浅底高可读咨询风
-- `whiteboard_handdrawn`：白板满版 + 硬笔手写 + 手绘彩色插图风格
-- `custom`：自定义风格
+- `title + 6-10 small modules + 1 conclusion strip`
+- `title + 3-5 explanation panels with longer sentences`
 
-其中 `whiteboard_handdrawn` 已经作为正式可选风格加入 skill，适合课程化、讲解型、创始人板书感、机制拆解型 PPT。
+前提仍然是：每个句子都要绑定到一个明确区域，不能变成漂浮的小碎标签。
 
-### 仓库结构
+### 目录结构
 
 ```text
 skills/
@@ -48,189 +49,159 @@ skills/
 方式一：复制到项目级 `skills/` 目录
 
 ```bash
-git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git
+git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git ppt-deck-builder-skill
 mkdir -p <your-workspace>/skills
-cp -R ppt-deck-builder-openclaw-skill/skills/ppt-deck-builder <your-workspace>/skills/
+cp -R ppt-deck-builder-skill/skills/ppt-deck-builder <your-workspace>/skills/
 ```
 
-方式二：复制到本地共享 `skills/` 目录
+方式二：复制到本机共享 `Codex` skills 目录
 
 ```bash
-git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git
-mkdir -p ~/.openclaw/skills
-cp -R ppt-deck-builder-openclaw-skill/skills/ppt-deck-builder ~/.openclaw/skills/
+git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git ppt-deck-builder-skill
+mkdir -p ~/.codex/skills
+cp -R ppt-deck-builder-skill/skills/ppt-deck-builder ~/.codex/skills/
 ```
+
+说明：
+
+- 远端仓库地址当前仍然是 `ppt-deck-builder-openclaw-skill`
+- 本地克隆目录可以直接改成 `ppt-deck-builder-skill`
+- skill 内部说明已经去掉了 `OpenClaw-safe` 这类表述，统一改成更中性的可移植写法
 
 ### 运行依赖
 
-进入 `skills/ppt-deck-builder/` 后，这套流程默认需要：
+进入 `skills/ppt-deck-builder/` 后，需要：
 
 - `bash`
 - `python3`
 - `requests`
 - `python-pptx`
 
-安装 Python 依赖：
+安装依赖：
 
 ```bash
 python3 -m pip install requests python-pptx
 ```
 
-### 图片生成后端
+### 环境变量
 
-这套流程不是绑定单一图片平台，而是支持可替换后端。
-
-内置两种 provider：
-
-- `runninghub_g31`：默认可直接使用的 RunningHub 文生图后端
-- `command`：通用适配模式，适合接入自定义图片服务
-
-开始执行前，建议先确认用户是否已经有 RunningHub 的 API Key。
-如果用户没有特别指定 provider，也要先说明默认模型是 RunningHub 3.1 flash，对应本仓库里的模型 ID `rhart-image-n-g31-flash`。
-
-provider 选择顺序：
-
-1. 页级 `image_provider`
-2. CLI `--provider`
-3. 计划文件级 `image_provider`
-4. 环境变量 `PPT_IMAGE_PROVIDER`
-5. 默认 `runninghub_g31`
-
-### 快速开始
-
-进入 skill 目录：
+默认路径使用 GrsAI：
 
 ```bash
-cd skills/ppt-deck-builder
+export PPT_IMAGE_PROVIDER="grsai"
+export GRSAI_API_KEY="your_api_key"
 ```
 
-检查环境：
-
-```bash
-bash scripts/check_env.sh
-```
-
-开始执行前先确认两件事：
-
-1. 用户是否已经有 `RUNNINGHUB_API_KEY`
-2. 如果没有特别指定 provider，默认会使用 RunningHub 3.1 flash，也就是 `rhart-image-n-g31-flash`
-
-RunningHub 示例：
+如果需要切到 RunningHub：
 
 ```bash
 export PPT_IMAGE_PROVIDER="runninghub_g31"
 export RUNNINGHUB_API_KEY="your_api_key"
-bash scripts/run_image_batch.sh plan.json output_dir
 ```
 
-自定义 provider 示例：
+如果需要接自定义后端：
 
 ```bash
 export PPT_IMAGE_PROVIDER="command"
 export PPT_IMAGE_PROVIDER_COMMAND="python3 scripts/provider_command_template.py"
-bash scripts/run_image_batch.sh plan.json output_dir
 ```
 
-### 标准流程
+### 快速开始
 
-1. 明确 audience、目标和页序
-2. 先确定整套的风格预设
-3. 为每页编写 page brief
-4. 将 brief 整理为 slide plan JSON
-5. 先做小样测试
-6. 再跑全量出图
-7. 对问题页单独返修
-8. 做整套 QA
-9. 打包为 `.pptx`
+```bash
+cd skills/ppt-deck-builder
+bash scripts/check_env.sh
+```
 
-如果用户明确要求强风格页面，建议把流程改成：
+建议的执行顺序：
 
-1. 先确认风格预设
-2. 先跑 sample pack
-3. 选定一页作为风格锚点
-4. 再跑全量
-5. 最后只修坏页
+1. 先确认 audience、目标和页序
+2. 先锁定整套 `style_preset`
+3. 逐页写 page brief 和可见文字
+4. 先跑 reference pack
+5. 审核通过后再跑 full batch
+6. 用 contact sheet 复查整套
+7. 只返修问题页
+8. 最后打包为 `.pptx`
 
 ### 关键文件
 
-- `skills/ppt-deck-builder/SKILL.md`：主技能说明
-- `skills/ppt-deck-builder/assets/page_brief_template.md`：页级 brief 模板
-- `skills/ppt-deck-builder/assets/slide_plan_template.json`：出图计划模板
-- `skills/ppt-deck-builder/references/style-presets.md`：风格预设说明
-- `skills/ppt-deck-builder/references/provider-adapters.md`：自定义 provider 协议说明
-- `skills/ppt-deck-builder/scripts/generate_from_plan.py`：主出图脚本
-- `skills/ppt-deck-builder/scripts/build_pptx_from_images.py`：图片打包为 PPTX
+- `skills/ppt-deck-builder/SKILL.md`
+- `skills/ppt-deck-builder/assets/page_brief_template.md`
+- `skills/ppt-deck-builder/assets/slide_plan_template.json`
+- `skills/ppt-deck-builder/references/prompt-rules.md`
+- `skills/ppt-deck-builder/references/provider-adapters.md`
+- `skills/ppt-deck-builder/references/style-presets.md`
+- `skills/ppt-deck-builder/scripts/generate_from_plan.py`
+- `skills/ppt-deck-builder/scripts/build_pptx_from_images.py`
 
-### 说明
+### 使用原则
 
-- 这套 skill 适合通用 PPT 生成，不绑定某个客户项目。
-- 这套 skill 更适合成品图交付型 PPT，不是高度可编辑的母版型 PPT。
-- 如果要切换图片生成平台，推荐从 `command` provider 扩展，而不是重写主流程。
+- 不要把“计划写完”当成“PPT 已生成完成”
+- 不要跳过 sample pack / reference pack
+- 不要在没看完整套联系表之前就直接打包
+- 如果是 `gpt-image-2` 密集页，先验证结构稳定，再放开文字量
+- 如果用户要手绘讲解感但不要白板边框，优先用 `custom` 的无边框手绘风格，而不是硬套 `whiteboard_handdrawn`
 
 ## English
 
-A generic PPT generation skills repository.
+This repository contains a reusable `ppt-deck-builder` skill for image-first PPT production:
 
-The actual skill source lives under `skills/`. It is suitable for OpenClaw and also works for other workflows that load local skill directories.
+`source digestion -> slide planning -> batch image generation -> single-page repair -> PPTX packaging`
 
-### What This Skill Does
+The actual skill lives under `skills/ppt-deck-builder/`.
 
-`ppt-deck-builder` helps with:
+### What It Is Good For
 
-- turning notes, PDFs, spreadsheets, or old decks into a presentation storyline
-- writing page briefs and fixed-text slide prompts
-- generating slide images through a replaceable image provider
-- rerunning only weak pages instead of rerunning the whole deck
-- packaging final slide images into a `.pptx`
+- turning notes, PDFs, spreadsheets, and old decks into a presentation structure
+- building page briefs and fixed-text slide plans
+- running batch generation through replaceable image providers
+- repairing weak slides one by one instead of rerunning the whole deck
+- packaging approved slide images into a `.pptx`
 
-It is optimized for finished-image delivery decks, where each slide is generated as a complete visual page and then packed into PowerPoint.
+It is optimized for finished-image delivery decks rather than heavily editable theme-engineered decks.
 
-### Style Presets Are Now Supported
+### Default Image Path
 
-This skill now supports choosing a deck-level visual direction before prompt writing.
+- default provider: `grsai`
+- default model: `gpt-image-2`
+- alternate built-in provider: `runninghub_g31`
+- escape-hatch provider: `command`
 
-Recommended presets:
+If no provider is specified, the workflow defaults to `grsai + gpt-image-2`.
 
-- `dark_blue_business`
-- `light_consulting`
-- `whiteboard_handdrawn`
-- `custom`
+With `grsai + gpt-image-2`, the workflow now allows denser slide experiments after a stable reference pack, including:
 
-`whiteboard_handdrawn` is now a first-class preset in the skill, intended for full-frame whiteboard pages, hard-pen Chinese handwriting, and hand-drawn color illustration workflows.
+- `title + 6-10 small modules + 1 conclusion strip`
+- `title + 3-5 explanation panels with longer sentences`
 
-### Repository Layout
+The rule still holds that every sentence must belong to one named region instead of floating as micro-label clutter.
 
-```text
-skills/
-  ppt-deck-builder/
-    SKILL.md
-    agents/
-    assets/
-    references/
-    scripts/
-```
+### Install
 
-### Installation
-
-Option 1: copy into a workspace-level `skills/` directory.
+Option 1: copy into a workspace-level `skills/` directory
 
 ```bash
-git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git
+git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git ppt-deck-builder-skill
 mkdir -p <your-workspace>/skills
-cp -R ppt-deck-builder-openclaw-skill/skills/ppt-deck-builder <your-workspace>/skills/
+cp -R ppt-deck-builder-skill/skills/ppt-deck-builder <your-workspace>/skills/
 ```
 
-Option 2: copy into a shared local `skills/` directory.
+Option 2: copy into a shared local Codex skills directory
 
 ```bash
-git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git
-mkdir -p ~/.openclaw/skills
-cp -R ppt-deck-builder-openclaw-skill/skills/ppt-deck-builder ~/.openclaw/skills/
+git clone https://github.com/lk251066/ppt-deck-builder-openclaw-skill.git ppt-deck-builder-skill
+mkdir -p ~/.codex/skills
+cp -R ppt-deck-builder-skill/skills/ppt-deck-builder ~/.codex/skills/
 ```
+
+Notes:
+
+- the current remote repository URL still contains `openclaw`
+- your local clone directory does not need to
+- the skill docs now use neutral portable-path wording instead of `OpenClaw-safe` labels
 
 ### Requirements
-
-From `skills/ppt-deck-builder/`, the workflow expects:
 
 - `bash`
 - `python3`
@@ -243,93 +214,55 @@ Install Python dependencies if needed:
 python3 -m pip install requests python-pptx
 ```
 
-### Image Providers
+### Environment
 
-This workflow supports replaceable image backends instead of forcing a single provider.
-
-Built-in providers:
-
-- `runninghub_g31`: ready-to-run RunningHub text-to-image backend
-- `command`: generic adapter mode for custom image services
-
-Before execution starts, confirm whether the user already has a RunningHub API key.
-If the user does not specify a provider, explain that the default model is RunningHub 3.1 flash, which maps to `rhart-image-n-g31-flash` in this repository.
-
-Provider selection order:
-
-1. slide-level `image_provider`
-2. CLI `--provider`
-3. plan-level `image_provider`
-4. environment variable `PPT_IMAGE_PROVIDER`
-5. default `runninghub_g31`
-
-### Quick Start
-
-Enter the skill directory:
+Default GrsAI path:
 
 ```bash
-cd skills/ppt-deck-builder
+export PPT_IMAGE_PROVIDER="grsai"
+export GRSAI_API_KEY="your_api_key"
 ```
 
-Run environment checks:
-
-```bash
-bash scripts/check_env.sh
-```
-
-Before execution starts, confirm two things:
-
-1. whether the user already has `RUNNINGHUB_API_KEY`
-2. if no provider is specified, the default model is RunningHub 3.1 flash, which maps to `rhart-image-n-g31-flash`
-
-RunningHub example:
+RunningHub fallback:
 
 ```bash
 export PPT_IMAGE_PROVIDER="runninghub_g31"
 export RUNNINGHUB_API_KEY="your_api_key"
-bash scripts/run_image_batch.sh plan.json output_dir
 ```
 
-Custom provider example:
+Custom adapter mode:
 
 ```bash
 export PPT_IMAGE_PROVIDER="command"
 export PPT_IMAGE_PROVIDER_COMMAND="python3 scripts/provider_command_template.py"
-bash scripts/run_image_batch.sh plan.json output_dir
 ```
 
-### Typical Workflow
+### Recommended Workflow
 
 1. define audience, goal, and page sequence
-2. choose the deck-level style preset
-3. write one page brief per slide
-4. convert briefs into a slide plan JSON
-5. generate a small sample first
-6. run the full batch
-7. rerun only weak pages
-8. QA the full image set
-9. package the images into a `.pptx`
+2. lock one deck-level style preset
+3. write page briefs and approved text
+4. run a reference pack first
+5. run the full batch after the sample is stable
+6. review the whole deck through contact sheets
+7. rerun only failed slides
+8. package only after review approval
 
-For strong visual styles, the recommended flow is:
+### Core Files
 
-1. choose the style preset first
-2. run a small sample pack
-3. approve one style anchor page
-4. run the full batch
-5. repair only the weak pages
+- `skills/ppt-deck-builder/SKILL.md`
+- `skills/ppt-deck-builder/assets/page_brief_template.md`
+- `skills/ppt-deck-builder/assets/slide_plan_template.json`
+- `skills/ppt-deck-builder/references/prompt-rules.md`
+- `skills/ppt-deck-builder/references/provider-adapters.md`
+- `skills/ppt-deck-builder/references/style-presets.md`
+- `skills/ppt-deck-builder/scripts/generate_from_plan.py`
+- `skills/ppt-deck-builder/scripts/build_pptx_from_images.py`
 
-### Key Files
+### Guardrails
 
-- `skills/ppt-deck-builder/SKILL.md`: main skill instructions
-- `skills/ppt-deck-builder/assets/page_brief_template.md`: page brief template
-- `skills/ppt-deck-builder/assets/slide_plan_template.json`: slide plan template
-- `skills/ppt-deck-builder/references/style-presets.md`: style preset reference
-- `skills/ppt-deck-builder/references/provider-adapters.md`: custom provider contract
-- `skills/ppt-deck-builder/scripts/generate_from_plan.py`: main image generation entrypoint
-- `skills/ppt-deck-builder/scripts/build_pptx_from_images.py`: package slide images into PowerPoint
-
-### Notes
-
-- This skill is meant to be a generic PPT generation skill, not a customer-specific workflow.
-- It is better suited for finished-image delivery decks than heavily editable theme-driven decks.
-- If you want to switch image platforms, extend the `command` provider instead of rewriting the main workflow.
+- do not treat plan writing as deck completion
+- do not skip the sample / reference-pack step
+- do not package before reviewing the whole image set
+- if you use dense `gpt-image-2` pages, prove structure stability before pushing density
+- if the user wants hand-drawn explanation without visible whiteboard borders, prefer a borderless `custom` brief over forcing `whiteboard_handdrawn`

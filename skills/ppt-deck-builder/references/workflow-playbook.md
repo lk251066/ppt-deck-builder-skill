@@ -7,20 +7,21 @@ Keep the skill portable and provider-agnostic while making the deck workflow sta
 ## Default Sequence
 
 1. Define audience, objective, and expected action.
-2. Choose one deck-level style preset.
-3. Build the page sequence.
-4. Lock page type, page identity sentence, and reading path for each page.
-5. Shorten page titles and visible text.
-6. Pick one clear composition per page.
-7. Create prompt-ready plan entries.
-8. Generate a small reference pack.
-9. Approve one style anchor page if needed.
-10. Run the full batch.
-11. Build deck-level review contact sheets.
-12. Review every generated page.
-13. Rerun only the bad pages.
-14. Review the repaired pages again.
-15. Package the approved image set.
+2. If the job is a simplification of an existing deck, confirm the reduced outline when page count or tone choices are not obvious.
+3. Choose one deck-level style preset.
+4. Build the page sequence.
+5. Lock page type, page identity sentence, and reading path for each page.
+6. Shorten page titles and visible text.
+7. Pick one clear composition per page.
+8. Create prompt-ready plan entries.
+9. Generate a small reference pack.
+10. Approve one style anchor page if needed.
+11. Run the full batch.
+12. Build deck-level review contact sheets.
+13. Review every generated page.
+14. Rerun only the bad pages.
+15. Review the repaired pages again.
+16. Package the approved image set.
 
 ## Style Preset Rules
 
@@ -43,6 +44,7 @@ Recommended presets:
 - Card titles should usually be 4-8 Chinese characters.
 - Prefer noun phrases over long spoken sentences.
 - Remove repeated ideas before prompt writing.
+- Do not keep provenance lines such as `基于某某内容简化` by default. Keep them only when the user explicitly wants source attribution visible on the slide.
 - If a page needs too many words, split the page or move detail to notes.
 - If the user wants higher information density, increase text only after deciding where each sentence will live.
 - Do not raise information density by repeating the same meaning in the diagram area and the footer area.
@@ -58,7 +60,12 @@ Recommended presets:
 - A path page should stay a path page, a matrix page should stay a matrix page, and a comparison page should stay a comparison page.
 - Keep the deck's main visual standard first.
 - Use light background and dark text only as a fallback when dense text remains unreadable after layout and wording repair.
+- If the provider is `grsai` and the model is `gpt-image-2`, you may deliberately test denser pages after one stable reference pack proves the structure is holding.
+- For `grsai` with `gpt-image-2`, two useful stress-test directions are:
+  `title + 6-10 small modules + 1 conclusion strip`
+  `title + 3-5 larger explanation panels with longer sentences`
 - If the slide should feel premium, improve hierarchy, spacing, region ownership, and restraint before adding more glow or motion cues.
+- If a page has both a page title and an inner panel title, keep the labels semantically distinct instead of repeating near-identical wording.
 
 ## Prompt Assembly Rules
 
@@ -100,6 +107,8 @@ Approve the reference pack only when:
 - If the provider does not support reference images, translate the approved page into text rules for card material, lighting, line style, palette, and spacing.
 - Keep page-specific structure intact even when reusing the same visual standard.
 - For whiteboard decks, treat the first approved page as the strongest style anchor and keep border, handwriting, illustration, and mascot behavior consistent on later pages.
+- For whiteboard decks with comic people, keep the people in a supporting role by default unless the user explicitly wants a more playful or mascot-led page.
+- If the user wants a hand-drawn explanation deck without a visible board frame, do not force `whiteboard_handdrawn`; use a `custom` borderless hand-drawn style anchor instead.
 
 ## Full-Batch Review Rules
 
@@ -107,6 +116,7 @@ After the full batch is generated:
 - build review contact sheets with `scripts/build_contact_sheet.py`
 - inspect the whole deck, not just 1-2 sample slides
 - check for repeated text, wrong words, wrong abbreviations, blurry text, wrong output strips, poster drift, and weak business tone
+- check whether semantically duplicated headings appeared in both the page title and a panel title
 - inspect the dense pages at full size, not only in contact-sheet view
 - rerun only the failed slides after prompt or structure repair
 - re-review the repaired slides before packaging
@@ -133,6 +143,7 @@ If text quality is poor:
 - keep one sentence in one region only
 - restore the original page structure if the prompt drifted into a generic template
 - if the chosen preset is `whiteboard_handdrawn`, reduce module count before reducing handwriting size
+- if the provider is `grsai` with `gpt-image-2`, try one more dense-structure repair before simplifying, because the model may still carry more text than the default rules assume
 - if the model rewrites titles in whiteboard mode, explicitly lock the page title and forbid replacement text before rerunning
 
 If style quality is poor:
